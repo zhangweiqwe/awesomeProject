@@ -16,6 +16,7 @@ import (
 	//"encoding/binary"
 	//"reflect"
 	//"context"
+	"log"
 )
 
 
@@ -31,15 +32,41 @@ func main() {
 
 	fmt.Println("数据库连接完成")
 
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS student(id INT NOT  NULL auto_increment PRIMARY KEY ,name CHAR (16) NOT  NULL,photo VARCHAR(160) NOT  NULL DEFAULT 'https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=2938685437,2474894161&fm=27&gp=0.jpg'  ,abstract VARCHAR(200) )  ;")
+	res, err := db.Exec("CREATE TABLE IF NOT EXISTS student(id INT NOT  NULL auto_increment PRIMARY KEY ,name CHAR (16) NOT  NULL,photo VARCHAR(160) NOT  NULL DEFAULT 'https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=2938685437,2474894161&fm=27&gp=0.jpg'  ,abstract VARCHAR(200) )  ;")
 	checkErrB(err)
+
+	defer db.Close()
+
+	if err := db.Ping(); err != nil {
+		log.Fatalln(err)
+	}
+
+	/*i,err := res.LastInsertId()
+	checkErrB(err)*/
+	//println("---->i=%d",i)
+
+	//update student SET abstract='描述3' where id=1;
+	stmt, err := db.Prepare("update student SET abstract=? where id=?")
+	checkErrB(err)
+
+	res, err = stmt.Exec("描述2", 3)
+	checkErrB(err)
+
+	i,err := res.LastInsertId()
+	checkErrB(err)
+
+
+	println("-->i=",i,430)
 
 	if false {
 		for a :=0;a<10; a++{
 			stmt, err := db.Prepare("INSERT student SET name=?,abstract=?")
 			checkErrB(err)
-			_, err = stmt.Exec("张伟"+strconv.Itoa(a), "追求真理的人")
+			res, err = stmt.Exec("张伟"+strconv.Itoa(a), "追求真理的人")
 			checkErrB(err)
+			i,err := res.LastInsertId()
+			checkErrB(err)
+			println("---->i=%d",i)
 		}
 	}
 
@@ -86,7 +113,7 @@ func main() {
 		checkErrB(err)
 		num,err :=   strconv.Atoi(context.Query("num"))
 		checkErrB(err)
-		strSql := "SELECT * FROM student limit "+strconv.Itoa(index*num)+","+strconv.Itoa(num)+";"
+		strSql := "SELECT * FROM student Where id!=109 limit "+strconv.Itoa(index*num)+","+strconv.Itoa(num)+";"
 		fmt.Println(strSql)
 		rows, err := db.Query(strSql)
 		checkErrB(err)
@@ -110,10 +137,7 @@ func main() {
 
 
 		var holder JsonHolder
-		var id int
-		var name string
-		var photo string
-		var abstract string
+
 		if !rows.Next(){
 			holder.Code = 1004
 			holder.Msg = "未查询到数据"
@@ -121,9 +145,16 @@ func main() {
 		}else {
 			holder.Code = 1000
 			holder.Msg = "获取成功"
+
+			var id int
+			var name string
+			var photo string
+			var abstract string
+
+
 			err = rows.Scan(&id, &name,&photo,&abstract)
 			checkErrB(err)
-			holder.Item =append(holder.Item,Item{Id:id,Name:name,Photo:photo,Abstract:abstract})
+			holder.Item = append(holder.Item,Item{Id:id,Name:name,Photo:photo,Abstract:abstract})
 			//若返回json数据，可以直接使用gin封装好的JSON方法
 			for rows.Next() {
 				err = rows.Scan(&id, &name,&photo,&abstract)
