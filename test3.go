@@ -1,4 +1,4 @@
-package me
+package main
 import (
 	"bufio" //缓存IO
 	"fmt"
