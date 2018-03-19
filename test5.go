@@ -30,6 +30,11 @@ func main() {
 	db, err := sql.Open("mysql", "root:gh5536856@/test?charset=utf8")
 	checkErrB(err)
 
+	if err := db.Ping(); err != nil {
+		fmt.Println("数据库ping 失败！")
+		log.Fatalln(err)
+	}
+
 	fmt.Println("数据库连接完成")
 
 	res, err := db.Exec("CREATE TABLE IF NOT EXISTS student(id INT NOT  NULL auto_increment PRIMARY KEY ,name CHAR (16) NOT  NULL,photo VARCHAR(160) NOT  NULL DEFAULT 'https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=2938685437,2474894161&fm=27&gp=0.jpg'  ,abstract VARCHAR(200) )  ;")
@@ -37,9 +42,7 @@ func main() {
 
 	defer db.Close()
 
-	if err := db.Ping(); err != nil {
-		log.Fatalln(err)
-	}
+
 
 	/*i,err := res.LastInsertId()
 	checkErrB(err)*/
