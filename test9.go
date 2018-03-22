@@ -75,6 +75,7 @@ func main() {
 
 		token := jwt.New(jwt.SigningMethodHS256)
 		claims := make(jwt.MapClaims)
+		claims["phone"] = phone
 		claims["exp"] = time.Now().Add(time.Hour * time.Duration(1)).Unix()
 		claims["iat"] = time.Now().Unix()
 		token.Claims = claims
@@ -90,7 +91,7 @@ func main() {
 	})
 
 	//127.0.0.1:8090/resource
-//eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1MjE2OTI4NjYsImlhdCI6MTUyMTY4OTI2Nn0.hHIrA4lyH4I5du1bgzvJ7vYrN7iwOyNyKhuyNvLAbs0
+//eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1MjE2OTQyMDcsImlhdCI6MTUyMTY5MDYwNywicGhvbmUiOiIxNTkyMzU0OTIxMSJ9.LkQNohKS8g3fcof8Bj-F7nI1Rju-vAEOpd-c9IhF1F4
 
 	r.POST("/resource", func(context *gin.Context) {
 
@@ -98,8 +99,6 @@ func main() {
 			func(token *jwt.Token) (interface{}, error) {
 				return []byte(user.SecretKey), nil
 			})
-
-
 		//checkErrZ(err)
 
 		type AuthenticationSuccessJson struct {
@@ -116,7 +115,19 @@ func main() {
 				sucessJson.Code = user.CODE_SUCCESS
 				sucessJson.Msg = "可以尝试访问资源"
 
-				fmt.Println("还原信息",token.Claims)
+
+				claims,ok :=token.Claims.(jwt.MapClaims)
+				if!ok{
+					sucessJson.Code = user.CODE_ERROR
+					sucessJson.Msg = "尝试访问失败，用户信息异常"
+				}else {
+					var phone string = claims["phone"].(string)
+					fmt.Println("还原信息",phone)
+				}
+
+
+
+
 			} else {
 				sucessJson.Code = user.CODE_ERROR
 				sucessJson.Msg = "尝试访问失败"
