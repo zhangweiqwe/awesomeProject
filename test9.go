@@ -105,6 +105,7 @@ func main() {
 			Code  int    `json:code`
 			Msg   string `json:msg`
 			Token string `json:token`
+
 		}
 
 		var sucessJson AuthenticationSuccessJson
@@ -121,7 +122,7 @@ func main() {
 					sucessJson.Code = user.CODE_ERROR
 					sucessJson.Msg = "尝试访问失败，用户信息异常"
 				}else {
-					var phone string = claims["phone"].(string)
+					var phone = claims["phone"].(string)
 					fmt.Println("还原信息",phone)
 				}
 
@@ -130,7 +131,7 @@ func main() {
 
 			} else {
 				sucessJson.Code = user.CODE_ERROR
-				sucessJson.Msg = "尝试访问失败"
+				sucessJson.Msg = "尝试访问失败,token.NotValid"
 			}
 		}else {
 			sucessJson.Code = user.CODE_ERROR
